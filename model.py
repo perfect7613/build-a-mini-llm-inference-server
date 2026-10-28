@@ -40,3 +40,35 @@ def top_k_filter(logits, k):
 
     return result
 
+# Step 4 - top_p_filter
+def top_p_filter(logits, p):
+    if p >= 1.0:
+        return logits.copy()
+
+    probs = stable_softmax(logits)
+
+    # Stable descending sort preserves original order for ties
+    sorted_indices = np.argsort(
+        -probs, axis=-1, kind="stable"
+    )
+
+    sorted_probs = np.take_along_axis(
+        probs, sorted_indices, axis=-1
+    )
+
+    cumulative_probs = np.cumsum(sorted_probs, axis=-1)
+
+    previous_cumulative = cumulative_probs - sorted_probs
+    keep_sorted = previous_cumulative < p
+
+    keep_mask = np.zeros_like(logits, dtype=bool)
+
+    np.put_along_axis(
+        keep_mask, sorted_indices, keep_sorted, axis=-1
+    )
+
+    result = logits.copy()
+    result[~keep_mask] = -np.inf
+
+    return result
+
