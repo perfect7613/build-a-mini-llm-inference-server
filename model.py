@@ -76,3 +76,9 @@ def top_p_filter(logits, p):
 def sample_from_probs(probs, rng):
     return int(rng.choice(len(probs), p=probs))
 
+# Step 6 - greedy_select
+import numpy as np
+
+def greedy_select(logits):
+    return int(np.argmax(logits))
+
